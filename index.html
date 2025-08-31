@@ -2,90 +2,134 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Company Attendance Portal</title>
+  <title>Geo-Tagged Attendance Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #f4f6f9;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #eef2f7;
       margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
-    h1 {
+    header {
+      width: 100%;
+      background: #4a90e2;
+      color: white;
+      text-align: center;
+      padding: 20px 10px;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .container {
+      background: #fff;
+      margin-top: 40px;
+      padding: 25px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+    h2 {
+      text-align: center;
       margin-bottom: 20px;
       color: #333;
     }
-    form {
-      background: #fff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 320px;
-    }
     label {
+      font-weight: 600;
       display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
+      margin: 12px 0 6px;
       color: #444;
     }
-    select, input {
+    input, select {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 18px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      background: #007BFF;
-      color: white;
-      border: none;
       padding: 12px;
       border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      margin-bottom: 15px;
+      transition: 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: #4a90e2;
+      box-shadow: 0 0 6px rgba(74,144,226,0.3);
+    }
+    button {
       width: 100%;
-      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #4a90e2;
+      color: white;
       font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
     }
     button:hover {
-      background: #0056b3;
+      background: #357abd;
+      transform: scale(1.02);
+    }
+    #status {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #666;
     }
   </style>
 </head>
 <body>
-  <h1>Company Attendance Portal</h1>
-  <form action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" method="POST" target="_blank">
-    
-    <label for="name">Employee Name</label>
-    <select name="entry.1111111111" id="name" required>
-      <option value="">-- Select Employee --</option>
-      <option value="Shubham">Shubham</option>
-      <option value="BK Mishra">BK Mishra</option>
-    </select>
+  <header>🏢 Company Attendance Portal</header>
 
-    <label for="status">Check In/Out</label>
-    <select name="entry.2222222222" id="status" required>
-      <option value="In">Check In</option>
-      <option value="Out">Check Out</option>
-    </select>
+  <div class="container">
+    <h2>Mark Attendance</h2>
+    <p id="status">Fetching your location…</p>
 
-    <label for="lat">Latitude</label>
-    <input type="text" name="entry.3333333333" id="lat" readonly>
+    <form id="geoForm"
+          action="https://docs.google.com/forms/d/e/1FAIpQLSdsxORICKhIwLeQ-7IEXpYWGzKgaywOPeIpKLcwqj02VBN99w/formResponse"
+          method="POST">
 
-    <label for="lon">Longitude</label>
-    <input type="text" name="entry.4444444444" id="lon" readonly>
+      <!-- Hidden fields for Geo -->
+      <input type="hidden" name="entry.2061552549" id="latitude">
+      <input type="hidden" name="entry.458039272" id="longitude">
 
-    <button type="submit">Submit Attendance</button>
-  </form>
+      <!-- Visible form fields -->
+      <label>Employee Name</label>
+      <input type="text" name="entry.1081754751" placeholder="Enter your name" required>
+
+      <label>Check In / Out</label>
+      <select name="entry.603574851" required>
+        <option value="">-- Select --</option>
+        <option value="IN">Check In</option>
+        <option value="OUT">Check Out</option>
+      </select>
+
+      <button type="submit">Submit Attendance</button>
+    </form>
+  </div>
 
   <script>
+    const statusEl = document.getElementById("status");
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        document.getElementById("lat").value = position.coords.latitude;
-        document.getElementById("lon").value = position.coords.longitude;
-      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById("latitude").value = pos.coords.latitude;
+          document.getElementById("longitude").value = pos.coords.longitude;
+          statusEl.innerText = "✅ Location captured — Ready to submit";
+          statusEl.style.color = "green";
+        },
+        (err) => {
+          statusEl.innerText = "❌ Unable to get location — Please allow access.";
+          statusEl.style.color = "red";
+        }
+      );
+    } else {
+      statusEl.innerText = "❌ Geolocation not supported by your browser.";
+      statusEl.style.color = "red";
     }
   </script>
 </body>
